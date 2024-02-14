@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "basics",
+  "main": "index.js",
+  "scripts": {
+   "start": "node index.js"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "manish",
+  "license": "ISC"
+}
