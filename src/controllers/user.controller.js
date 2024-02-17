@@ -3,6 +3,7 @@ import {User} from "../models/user.model.js"
 import{ApiError} from "../utills/ApiErrors.js"
 import { uploadToCloudinary } from "../utills/Cloudinary.js"
 import {ApiResponse} from "../utills/ApiResponse.js"
+import {subscription} from "../models/subscription.model.js"
 
 
 const generateAccessAndRefereshTokens=async(userId)=>{
@@ -217,11 +218,178 @@ const refreshAccesstoken=asyncHandler(async(req,res)=>{
     }
 })
 
+const getUserProfile=asyncHandler(async(req,res)=>{
+    
+    return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "User profile fetched successfully"))
+})
+
+const UpdateAccountsDetails=asyncHandler(async(req,res)=>{
+    const {fullName, email, username}=req.body
+    const user=await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                fullName,
+                email,
+                username
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password -refreshToken")
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User profile updated successfully"))
+})
+
+const updateAvatarImage=asyncHandler(async(req,res)=>{
+    const avatarLocalPath=req.file?.path;
+
+    if(!avatarLocalPath){
+        throw new ApiError(400, "Avatar is required")
+    }
+
+    const avatar=await uploadToCloudinary(avatarLocalPath);
+   
+    if(!avatar){
+        throw new ApiError(500, "Error Uploading When changing Avatar Image")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                avatar:avatar.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password -refreshToken")
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "User profile updated successfully"))
+})
+
+
+const updateCoverImage=asyncHandler(async(req,res)=>{
+    const CoverImagePath=req.file?.path;
+
+    if(!CoverImagePath){
+        throw new ApiError(400, "Avatar is required")
+    }
+
+    const CoverImage=await uploadToCloudinary(CoverImagePath);
+   
+    if(!CoverImage){
+        throw new ApiError(500, "Error Uploading When changing CoverImage")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set:{
+                coverImage:CoverImage.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password -refreshToken")
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "coverImage profile updated successfully"))
+})
+
+
+
+const getUserChannelProfile= asyncHandler(async(req,res)=>{
+    const {username}=req.params
+    
+    if(!username){
+        throw new ApiError(400, "username is required")
+    }
+    const ChannelProfile=await User.aggregate([
+        {
+            $match:{
+                username:username.toLowerCase()
+            }
+        },
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:_id,
+                foreignField:"channel",
+                as:"subscribers"
+
+            }
+        },
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:_id,
+                foreignField:"subscriber",
+                as:"subscribedTo"
+
+            }
+        },
+        {
+            $addFields:{
+                subscribersCount:{$size:"$subscribers"},
+                subscribedCount:{$size:"$subscribedTo"},
+                isSubscribed:{
+                    $cond:{
+                        if:{$in:[req.user._id,"$subscribers.subscriber"]},
+                        then:true,
+                        else:false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                fullName:1,
+                username:1,
+                avatar:1,
+                coverImage:1,
+                subscribersCount:1,
+                subscribedCount:1,
+                isSubscribed:1
+    
+            }
+
+        }
+       
+    ])
+
+
+    if(!ChannelProfile){
+        throw new ApiError(404, "Channel Profile not found")
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, ChannelProfile[0], "Channel Profile fetched successfully"))
+
+  
+
+})
 
 export {
     registerUser,
     loginUser,
     logoutUser,
     changeCurrentPassword,
-    refreshAccesstoken
+    refreshAccesstoken,
+    getUserProfile,
+    UpdateAccountsDetails,
+    updateAvatarImage,
+    updateCoverImage,
+    getUserChannelProfile
 }
