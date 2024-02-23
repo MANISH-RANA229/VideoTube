@@ -3,7 +3,7 @@ import {User} from "../models/user.model.js"
 import{ApiError} from "../utills/ApiErrors.js"
 import { uploadToCloudinary } from "../utills/Cloudinary.js"
 import {ApiResponse} from "../utills/ApiResponse.js"
-import {subscription} from "../models/subscription.model.js"
+import {Subscription} from "../models/Subscription.model.js"
 import mongoose from "mongoose"
 
 
@@ -159,8 +159,8 @@ const logoutUser=asyncHandler(async (req, res) =>{
 
     return res
     .status(200)
-    .clearcookie("accessToken", options)
-    .clearcookie("refreshToken", options)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
     .json(
         new ApiResponse(
             200, 
@@ -325,7 +325,7 @@ const getUserChannelProfile= asyncHandler(async(req,res)=>{
         {
             $lookup:{
                 from:"subscriptions",
-                localField:_id,
+                localField:"_id",
                 foreignField:"channel",
                 as:"subscribers"
 
@@ -334,7 +334,7 @@ const getUserChannelProfile= asyncHandler(async(req,res)=>{
         {
             $lookup:{
                 from:"subscriptions",
-                localField:_id,
+                localField:"_id",
                 foreignField:"subscriber",
                 as:"subscribedTo"
 
@@ -373,6 +373,7 @@ const getUserChannelProfile= asyncHandler(async(req,res)=>{
     if(!ChannelProfile){
         throw new ApiError(404, "Channel Profile not found")
     }
+    console.log("ChannelProfile: ", ChannelProfile);
 
     return res
     .status(200)
@@ -415,8 +416,12 @@ const getWatchHistory=asyncHandler(async(req,res)=>{
                         }
                     },
                     {
-                        $addFields:"$owner"
+                        $addFields:{
+                            owner:{
+                                $first: "$owner"
+                            }
                     }
+                }
                 ]
             }
         }

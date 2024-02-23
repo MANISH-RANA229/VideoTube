@@ -23,28 +23,24 @@ router.route('/register').post(
         {name: 'coverImage', maxCount: 1}
     
     ]),
-    registerUser);
+    registerUser); //working
 
-    router.route("/login").post(loginUser);
+    router.route("/login").post(loginUser); //working
 
 
 //secured Routes
-    router.route("/logout").post(verifyJWT,logoutUser)
+    router.route("/logout").post(verifyJWT,logoutUser) //working
     router.route("/refresh-token").post(refreshAccesstoken)
-    router.route("/change-password").post(verifyJWT,changeCurrentPassword)
-    router.route("/current-user").get(verifyJWT,getCurrentuser)
-    router.route("/update-account").patch(verifyJWT,UpdateAccountsDetails)
+    router.route("/change-password").post(verifyJWT,changeCurrentPassword) //working
+    router.route("/current-user").get(verifyJWT,getCurrentuser) //working
+    router.route("/update-account").patch(verifyJWT,UpdateAccountsDetails) //working
     router.route("/avatar").patch(verifyJWT,upload.single("avatar"),updateAvatarImage)
-    router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateCoverImage)
-    router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
-    router.route("/history").get(verifyJWT,getWatchHistory)
+    router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateCoverImage) //working
+    router.route("/c/:username").get(verifyJWT,getUserChannelProfile) //working
+    router.route("/history").get(verifyJWT,getWatchHistory) //working
 
 
     
-
-
-
-
 
 
 export default router;
