@@ -40,7 +40,6 @@ router.route('/register').post(
     router.route("/history").get(verifyJWT,getWatchHistory) //working
 
 
-    
 
 
 export default router;
